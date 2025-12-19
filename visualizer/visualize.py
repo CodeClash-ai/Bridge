@@ -3,7 +3,6 @@
 
 import argparse
 import sys
-from pathlib import Path
 
 from display import (
     print_header, 
