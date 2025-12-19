@@ -8,7 +8,7 @@ def calculate_contract_score(
     tricks_made: int,
     doubled: bool,
     redoubled: bool,
-    vulnerable: dict[str, bool]
+    vulnerable: dict[str, bool],
 ) -> tuple[int, int]:
     """Calculate the score for a Bridge contract."""
     tricks_needed = 6 + level
@@ -16,8 +16,7 @@ def calculate_contract_score(
 
     if tricks_made >= tricks_needed:
         score = _calculate_made_contract(
-            level, suit, tricks_made, tricks_needed,
-            doubled, redoubled, is_vulnerable
+            level, suit, tricks_made, tricks_needed, doubled, redoubled, is_vulnerable
         )
     else:
         undertricks = tricks_needed - tricks_made
@@ -25,26 +24,31 @@ def calculate_contract_score(
             undertricks, doubled, redoubled, is_vulnerable
         )
 
-    if declarer_team == 'NS':
+    if declarer_team == "NS":
         return (score, -score)
     else:
         return (-score, score)
 
 
 def _calculate_made_contract(
-    level: int, suit: str, tricks_made: int, tricks_needed: int,
-    doubled: bool, redoubled: bool, vulnerable: bool
+    level: int,
+    suit: str,
+    tricks_made: int,
+    tricks_needed: int,
+    doubled: bool,
+    redoubled: bool,
+    vulnerable: bool,
 ) -> int:
     """Calculate points for making a contract."""
-    if suit in ['C', 'D']:
+    if suit in ["C", "D"]:
         base_per_trick = 20
-    elif suit in ['H', 'S']:
+    elif suit in ["H", "S"]:
         base_per_trick = 30
     else:  # NT
         base_per_trick = 30
 
     trick_points = base_per_trick * level
-    if suit == 'NT':
+    if suit == "NT":
         trick_points += 10
 
     if redoubled:
@@ -118,12 +122,9 @@ def normalize_to_vp(ns_raw: int, ew_raw: int) -> dict[str, float]:
     ns_vp = 0.5 + vp_diff / 2
     ew_vp = 0.5 - vp_diff / 2
 
-    return {
-        'NS': round(ns_vp, 3),
-        'EW': round(ew_vp, 3)
-    }
+    return {"NS": round(ns_vp, 3), "EW": round(ew_vp, 3)}
 
 
 def get_declarer_team(declarer_position: int) -> str:
     """Get team name from declarer position."""
-    return 'NS' if declarer_position % 2 == 0 else 'EW'
+    return "NS" if declarer_position % 2 == 0 else "EW"
