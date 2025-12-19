@@ -53,18 +53,52 @@ class BridgeGame:
         highest_level = 0
         highest_suit_index = -1
         suit_order = ['C', 'D', 'H', 'S', 'NT']
+
+        # Track the current state for DOUBLE/REDOUBLE
+        last_contract_bid = None
+        last_contract_bidder = None
+        is_doubled = False
+        is_redoubled = False
+
         for bid_record in self.bids:
             bid = bid_record['bid']
-            if bid not in ['PASS', 'DOUBLE', 'REDOUBLE']:
+            if bid == 'DOUBLE':
+                is_doubled = True
+                is_redoubled = False
+            elif bid == 'REDOUBLE':
+                is_redoubled = True
+            elif bid != 'PASS':
+                # New contract bid resets double/redouble state
                 level = int(bid[0])
                 suit = bid[1:] if len(bid) > 1 else bid[1]
                 if level > highest_level or (level == highest_level and suit_order.index(suit) > highest_suit_index):
                     highest_level = level
                     highest_suit_index = suit_order.index(suit)
+                    last_contract_bid = bid
+                    last_contract_bidder = bid_record['position']
+                    is_doubled = False
+                    is_redoubled = False
+
+        # Add higher contract bids
         for level in range(1, 8):
             for suit in suit_order:
                 if level > highest_level or (level == highest_level and suit_order.index(suit) > highest_suit_index):
                     legal.append(f"{level}{suit}")
+
+        # Add DOUBLE if opponents made the last contract bid and it's not doubled
+        if last_contract_bid and not is_doubled and not is_redoubled:
+            my_team = 'NS' if position % 2 == 0 else 'EW'
+            bidder_team = 'NS' if last_contract_bidder % 2 == 0 else 'EW'
+            if my_team != bidder_team:
+                legal.append('DOUBLE')
+
+        # Add REDOUBLE if opponents doubled our bid
+        if last_contract_bid and is_doubled and not is_redoubled:
+            my_team = 'NS' if position % 2 == 0 else 'EW'
+            bidder_team = 'NS' if last_contract_bidder % 2 == 0 else 'EW'
+            if my_team == bidder_team:
+                legal.append('REDOUBLE')
+
         return legal
 
     def make_bid(self, position: int, bid: str) -> bool:
@@ -98,6 +132,8 @@ class BridgeGame:
         level = int(bid_str[0])
         suit = bid_str[1:]
         bid_team = 'NS' if last_bid['position'] % 2 == 0 else 'EW'
+
+        # Find declarer (first player from declaring team to bid the suit)
         declarer = None
         for bid_record in self.bids:
             if bid_record['bid'] not in ['PASS', 'DOUBLE', 'REDOUBLE']:
@@ -106,7 +142,25 @@ class BridgeGame:
                 if bid_suit == suit and team == bid_team:
                     declarer = bid_record['position']
                     break
-        self.contract = {'level': level, 'suit': suit, 'declarer': declarer, 'doubled': False, 'redoubled': False}
+
+        # Track doubled/redoubled state from bids after the last contract bid
+        is_doubled = False
+        is_redoubled = False
+        last_contract_idx = self.bids.index(last_bid)
+        for bid_record in self.bids[last_contract_idx + 1:]:
+            bid = bid_record['bid']
+            if bid == 'DOUBLE':
+                is_doubled = True
+            elif bid == 'REDOUBLE':
+                is_redoubled = True
+
+        self.contract = {
+            'level': level,
+            'suit': suit,
+            'declarer': declarer,
+            'doubled': is_doubled and not is_redoubled,
+            'redoubled': is_redoubled
+        }
 
     def get_legal_cards(self, position: int) -> list[str]:
         if self.phase != 'playing' or position != self.current_player:

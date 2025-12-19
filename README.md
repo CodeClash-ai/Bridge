@@ -12,13 +12,24 @@ Bridge is a 4-player trick-taking card game played in teams:
 ```
 Bridge/
 ├── game_server/          # Core game logic
+│   ├── __init__.py       # Module exports
 │   ├── game.py           # BridgeGame class - main game state manager
 │   ├── deck.py           # Card deck management and comparison
 │   └── scoring.py        # Bridge scoring rules
-├── examples/
-│   └── random_agent.py   # Example bot implementation
+├── bridge_agent.py       # Starter bot implementation (edit this!)
+├── run_game.py           # Game runner script for local testing
+├── CODECLASH.md          # CodeClash arena information
 └── README.md
 ```
+
+## Quick Start
+
+1. Edit `bridge_agent.py` to implement your bot logic
+2. Test locally:
+   ```bash
+   python run_game.py bridge_agent.py bridge_agent.py bridge_agent.py bridge_agent.py
+   ```
+3. Submit to CodeClash!
 
 ## Bot Interface
 
@@ -69,9 +80,26 @@ Play a card during the playing phase.
 
 Games are scored using standard Bridge scoring rules, then normalized to Victory Points (VP) on a 0-1 scale.
 
+## Running Games Locally
+
+Use `run_game.py` to test your bot:
+
+```bash
+# Run with 4 copies of your agent
+python run_game.py agent1.py agent2.py agent3.py agent4.py
+
+# With options
+python run_game.py agent.py agent.py agent.py agent.py --seed 42 --dealer 1 -o result.json
+```
+
+**Options:**
+- `--seed`: Random seed for reproducible games
+- `--dealer`: Dealer position (0-3, default: 0)
+- `-o, --output`: Output file for results (default: stdout)
+
 ## Example Bot
 
-See `examples/random_agent.py` for a simple random bot implementation.
+The included `bridge_agent.py` is a simple random bot:
 
 ```python
 def get_bid(game_state):
