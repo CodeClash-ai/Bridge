@@ -5,6 +5,7 @@ import argparse
 import importlib.util
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 # Add game_server to path
@@ -99,15 +100,23 @@ def main():
     parser.add_argument('agents', nargs=4, help='Paths to 4 agent scripts')
     parser.add_argument('--seed', type=int, default=0, help='Random seed')
     parser.add_argument('--dealer', type=int, default=0, help='Dealer position (0-3)')
-    parser.add_argument('--output', '-o', help='Output file (default: stdout)')
+    parser.add_argument('--output-dir', '-o', help='Output directory for logs (default: stdout)')
 
     args = parser.parse_args()
 
     result = run_game(args.agents, seed=args.seed, dealer=args.dealer)
 
     output = json.dumps(result, indent=2)
-    if args.output:
-        with open(args.output, 'w') as f:
+    if args.output_dir:
+        # Create output directory if it doesn't exist
+        output_path = Path(args.output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        
+        # Generate timestamp-based filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+        output_file = output_path / f"{timestamp}.json"
+        
+        with open(output_file, 'w') as f:
             f.write(output)
     else:
         print(output)
